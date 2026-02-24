@@ -3,224 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Master - 打字學名言</title>
+    <title>Typing Master - 精準挑戰版</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
-            --primary-dark: #2c3e50;
+            --primary: #2c3e50;
             --highlight: #3498db;
             --correct: #27ae60;
             --wrong: #e74c3c;
             --warning: #f39c12;
-            --card-bg: #ffffff;
+            --secondary-btn: #bdc3c7;
         }
 
-        html, body { height: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', 'PingFang TC', sans-serif; background: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
 
-        body {
-            font-family: 'Segoe UI', 'PingFang TC', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .container { background: white; border-radius: 20px; box-shadow: 0 15px 45px rgba(0,0,0,0.15); width: 90%; max-width: 700px; overflow: hidden; position: relative; }
 
-        .container {
-            background: var(--card-bg);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 750px;
-            overflow: hidden; /* 讓標題背景可以貼齊邊緣 */
-        }
+        .header { background: var(--primary); color: white; padding: 18px; text-align: center; font-size: 22px; font-weight: bold; letter-spacing: 1px; }
 
-        /* 標題與題目區隔的關鍵：頂部導覽列感 */
-        .header {
-            background-color: var(--primary-dark);
-            color: white;
-            padding: 20px;
-            font-size: 24px;
-            letter-spacing: 2px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+        .content-area { padding: 35px; text-align: center; }
 
-        .content-area {
-            padding: 40px;
-            text-align: center;
-        }
+        .quote-box { background: #fafafa; border: 2px solid #f0f0f0; padding: 25px; border-radius: 15px; margin-bottom: 20px; min-height: 50px; }
 
-        /* 題目區域：增加背景深淺區隔 */
-        .quote-box {
-            background: #fdfdfd;
-            border: 1px dashed #dcdde1;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            min-height: 60px;
-        }
-
-        #word-display {
-            font-size: 26px;
-            line-height: 1.5;
-            color: #555;
-        }
-
-        .char { border-bottom: 2px solid #eee; margin: 0 1px; }
-        .current { border-bottom: 3px solid var(--highlight); color: var(--highlight); background: #f0f7ff; }
+        #word-display { font-size: 24px; line-height: 1.6; color: #444; }
+        .char { border-bottom: 2px solid #ddd; margin: 0 1px; transition: 0.1s; }
+        .current { border-bottom: 3px solid var(--highlight); color: var(--highlight); background: #ebf5ff; }
         .correct { color: var(--correct); border-bottom-color: transparent; }
         .wrong { color: white; background-color: var(--wrong); border-bottom-color: var(--wrong); }
 
-        #caps-warning {
-            color: var(--warning);
-            font-weight: bold;
-            height: 24px;
-            margin-bottom: 10px;
-            visibility: hidden;
-            font-size: 0.9rem;
+        #progress-text { font-size: 1rem; color: #7f8c8d; margin-bottom: 12px; font-weight: bold; }
+
+        input { width: 85%; padding: 16px; font-size: 20px; border: 2px solid #ddd; border-radius: 12px; outline: none; text-align: center; }
+
+        .stats { display: flex; justify-content: space-around; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; }
+        .stat-box { font-size: 0.85rem; color: #95a5a6; }
+        .stat-box span { display: block; font-size: 26px; font-weight: bold; color: var(--primary); }
+
+        #result-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; display: none; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 10;
         }
 
-        input {
-            width: 80%;
-            padding: 18px;
-            font-size: 20px;
-            border: 2px solid #ddd;
-            border-radius: 50px; /* 圓角輸入框 */
-            outline: none;
-            text-align: center;
-            transition: all 0.3s;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        }
+        .leaderboard { margin-top: 15px; width: 85%; text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; }
+        .leaderboard h3 { text-align: center; margin-top: 0; font-size: 1rem; color: #666; }
+        .score-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+        .score-time { color: #95a5a6; font-size: 0.85rem; }
 
-        input:focus { border-color: var(--highlight); box-shadow: 0 0 10px rgba(52, 152, 219, 0.2); }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 40px;
-            padding-top: 25px;
-            border-top: 1px solid #eee;
-        }
-
-        .stat-box { color: #7f8c8d; font-size: 0.9rem; }
-        .stat-box span { display: block; font-size: 28px; font-weight: bold; color: var(--primary-dark); }
-
-        button {
-            margin-top: 30px;
-            padding: 12px 35px;
-            background-color: var(--highlight);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        button:hover { background-color: #2980b9; transform: translateY(-2px); }
+        .btn-reset { margin-top: 25px; padding: 12px 30px; background: var(--secondary-btn); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        .btn-main { margin-top: 20px; padding: 14px 40px; background: var(--highlight); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; }
+        
+        #caps-warning { color: var(--warning); height: 24px; visibility: hidden; margin-bottom: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">TYPING MASTER</div>
+    <div class="header">TYPING MASTER - 精準挑戰</div>
     
-    <div class="content-area">
-        <div class="quote-box">
-            <div id="word-display">載入中...</div>
-        </div>
-
-        <div id="caps-warning">⚠️ 字母正確，但大小寫不匹配！</div>
+    <div id="result-screen">
+        <h2 id="result-title">挑戰結果</h2>
+        <div id="final-stats" style="font-size: 1.1rem; text-align: center; line-height: 1.8; margin-bottom: 10px;"></div>
         
-        <input type="text" id="input-field" placeholder="觀察上方文字，在此開始輸入..." autofocus autocomplete="off">
+        <div class="leaderboard">
+            <h3>🏆 個人歷史最高紀錄</h3>
+            <div id="high-scores"></div>
+        </div>
+        <button class="btn-main" onclick="startFullGame()">再戰一次</button>
+    </div>
+
+    <div class="content-area">
+        <div id="progress-text">第 1 / 5 題</div>
+        <div class="quote-box"><div id="word-display">載入中...</div></div>
+        <div id="caps-warning">⚠️注意：請檢察大小寫是否正確！</div>
+        <input type="text" id="input-field" placeholder="在此開始輸入..." autofocus autocomplete="off">
         
         <div class="stats">
-            <div class="stat-box">時間 (秒) <span id="timer">0</span></div>
-            <div class="stat-box">WPM (速度) <span id="wpm">0</span></div>
-            <div class="stat-box">正確率 (%) <span id="accuracy">100</span></div>
+            <div class="stat-box">時間 <span id="timer">0</span></div>
+            <div class="stat-box">WPM <span id="wpm">0</span></div>
+            <div class="stat-box">準確率 <span id="accuracy">100</span>%</div>
         </div>
-        
-        <button onclick="resetGame()">換下一題</button>
+
+        <button class="btn-reset" onclick="confirmReset()">重新開始 (第1題)</button>
     </div>
 </div>
 
 <script>
-    const quotes = [
+    const allQuotes = [
         "The best way to predict the future is to create it.",
         "Quality is not an act, it is a habit.",
         "Life is 10% what happens to us and 90% how we react to it.",
         "Everything you've ever wanted is on the other side of fear.",
-        "Do one thing every day that scares you."
+        "Do one thing every day that scares you.",
+        "Success is not final, failure is not fatal.",
+        "Believe you can and you're halfway there.",
+        "It always seems impossible until it's done.",
+        "Don't watch the clock; do what it does.",
+        "The only way to do great work is to love what you do."
     ];
 
+    let gameData = { currentRound: 0, totalRounds: 5, totalWPM: 0, totalAcc: 0 };
+    let gameQuotes = [];
     let timer, timeElapsed = 0, isPlaying = false, currentQuote = "", charIndex = 0, mistakes = 0;
-    const display = document.getElementById('word-display');
     const input = document.getElementById('input-field');
-    const warning = document.getElementById('caps-warning');
 
-    function initGame() {
-        currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
+    function startFullGame() {
+        gameData.currentRound = 0;
+        gameData.totalWPM = 0;
+        gameData.totalAcc = 0;
+        
+        let shuffleArray = [...allQuotes];
+        for (let i = shuffleArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
+        }
+        gameQuotes = shuffleArray.slice(0, 5);
+        
+        document.getElementById('result-screen').style.display = 'none';
+        nextRound();
+    }
+
+    function confirmReset() {
+        if (confirm("確定要重來嗎？成績將不計入排行榜。")) {
+            startFullGame();
+        }
+    }
+
+    function nextRound() {
+        if (gameData.currentRound >= gameData.totalRounds) {
+            showFinalResults();
+            return;
+        }
+        currentQuote = gameQuotes[gameData.currentRound];
+        gameData.currentRound++;
+        document.getElementById('progress-text').innerText = `第 ${gameData.currentRound} / ${gameData.totalRounds} 題`;
+        renderQuote();
+        resetRoundStats();
+    }
+
+    function renderQuote() {
+        const display = document.getElementById('word-display');
         display.innerHTML = "";
         currentQuote.split('').forEach(char => {
             const span = document.createElement('span');
-            span.classList.add('char');
+            span.className = 'char';
             span.innerText = char;
             display.appendChild(span);
         });
         updateCursor();
+    }
+
+    function resetRoundStats() {
+        charIndex = 0; mistakes = 0; timeElapsed = 0; isPlaying = false;
         input.value = "";
-        charIndex = 0;
-        mistakes = 0;
-        timeElapsed = 0;
-        isPlaying = false;
-        warning.style.visibility = 'hidden';
         clearInterval(timer);
         document.getElementById('timer').innerText = 0;
         document.getElementById('wpm').innerText = 0;
         document.getElementById('accuracy').innerText = 100;
-    }
-
-    function updateCursor() {
-        const chars = display.querySelectorAll('.char');
-        chars.forEach(c => c.classList.remove('current'));
-        if(chars[charIndex]) chars[charIndex].classList.add('current');
+        input.focus();
     }
 
     input.addEventListener('input', () => {
-        if (!isPlaying && input.value !== "") {
-            isPlaying = true;
-            startTimer();
-        }
-
-        const characters = display.querySelectorAll('.char');
-        const typedChar = input.value.slice(-1); 
+        if (!isPlaying && input.value !== "") { isPlaying = true; startTimer(); }
+        const characters = document.querySelectorAll('.char');
+        const typedChar = input.value.slice(-1);
         const targetChar = currentQuote[charIndex];
 
         if (typedChar === targetChar) {
-            warning.style.visibility = 'hidden';
-            characters[charIndex].classList.add('correct');
-            characters[charIndex].classList.remove('wrong');
+            document.getElementById('caps-warning').style.visibility = 'hidden';
+            characters[charIndex].className = 'char correct';
             charIndex++;
             updateCursor();
-            if (charIndex >= currentQuote.length) finishGame();
-        } else if (typedChar !== "") {
-            characters[charIndex].classList.add('wrong');
-            mistakes++;
-            if (typedChar.toLowerCase() === targetChar.toLowerCase()) {
-                warning.style.visibility = 'visible';
-            } else {
-                warning.style.visibility = 'hidden';
+            if (charIndex >= currentQuote.length) {
+                gameData.totalWPM += parseInt(document.getElementById('wpm').innerText);
+                gameData.totalAcc += parseInt(document.getElementById('accuracy').innerText);
+                setTimeout(nextRound, 100);
             }
+        } else if (typedChar !== "") {
+            characters[charIndex].className = 'char wrong';
+            mistakes++;
+            document.getElementById('caps-warning').style.visibility = 
+                (typedChar.toLowerCase() === targetChar.toLowerCase()) ? 'visible' : 'hidden';
         }
-
-        input.value = ""; 
+        input.value = "";
         updateStats();
     });
 
     function updateStats() {
-        const totalAttempts = charIndex + mistakes;
-        const acc = totalAttempts > 0 ? (charIndex / totalAttempts) * 100 : 100;
-        document.getElementById('accuracy').innerText = Math.round(acc);
+        const total = charIndex + mistakes;
+        const acc = total > 0 ? Math.round((charIndex / total) * 100) : 100;
+        document.getElementById('accuracy').innerText = acc;
         if (timeElapsed > 0) {
             const wpm = Math.round(((charIndex / 5) / timeElapsed) * 60);
             document.getElementById('wpm').innerText = wpm;
@@ -228,28 +200,56 @@
     }
 
     function startTimer() {
-        timer = setInterval(() => {
-            timeElapsed++;
-            document.getElementById('timer').innerText = timeElapsed;
-            updateStats();
-        }, 1000);
+        timer = setInterval(() => { timeElapsed++; document.getElementById('timer').innerText = timeElapsed; updateStats(); }, 1000);
     }
 
-    function finishGame() {
+    function updateCursor() {
+        const chars = document.querySelectorAll('.char');
+        chars.forEach(c => c.classList.remove('current'));
+        if(chars[charIndex]) chars[charIndex].classList.add('current');
+    }
+
+    function showFinalResults() {
         clearInterval(timer);
-        setTimeout(() => {
-            alert(`🎉 太棒了！\n您的打字速度：${document.getElementById('wpm').innerText} WPM\n正確率：${document.getElementById('accuracy').innerText}%`);
-            resetGame();
-        }, 100);
+        const avgWPM = Math.round(gameData.totalWPM / gameData.totalRounds);
+        const avgAcc = Math.round(gameData.totalAcc / gameData.totalRounds);
+        
+        const resTitle = document.getElementById('result-title');
+        if (avgWPM > 60) { resTitle.innerText = "🚀 打字之神！"; resTitle.style.color = "#e67e22"; }
+        else if (avgWPM > 40) { resTitle.innerText = "🔥 表現優異！"; resTitle.style.color = "#27ae60"; }
+        else { resTitle.innerText = "💪 挑戰完成！"; resTitle.style.color = "#3498db"; }
+
+        document.getElementById('result-screen').style.display = 'flex';
+        document.getElementById('final-stats').innerHTML = `平均速度: <b>${avgWPM} WPM</b><br>總準確率: <b>${avgAcc}%</b>`;
+        saveScore(avgWPM);
+        displayLeaderboard();
     }
 
-    function resetGame() {
-        initGame();
-        input.focus();
+    function saveScore(wpm) {
+        let scores = JSON.parse(localStorage.getItem('typingScores')) || [];
+        
+        // --- 核心改動：格式化時間 (MM/DD HH:mm) ---
+        const now = new Date();
+        const timeStr = `${(now.getMonth()+1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        
+        scores.push({ wpm: wpm, date: timeStr });
+        scores.sort((a, b) => b.wpm - a.wpm);
+        scores = scores.slice(0, 3);
+        localStorage.setItem('typingScores', JSON.stringify(scores));
     }
 
-    initGame();
+    function displayLeaderboard() {
+        const scores = JSON.parse(localStorage.getItem('typingScores')) || [];
+        const container = document.getElementById('high-scores');
+        container.innerHTML = scores.map((s, i) => `
+            <div class="score-item">
+                <span class="score-time">Rank ${i+1} (${s.date})</span>
+                <span><b>${s.wpm} WPM</b></span>
+            </div>
+        `).join('') || "尚無紀錄";
+    }
+
+    startFullGame();
 </script>
-
 </body>
 </html>
