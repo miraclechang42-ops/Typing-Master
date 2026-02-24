@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Master - 打字學名言</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --primary-dark: #2c3e50;
+            --highlight: #3498db;
+            --correct: #27ae60;
+            --wrong: #e74c3c;
+            --warning: #f39c12;
+            --card-bg: #ffffff;
+        }
+
+        html, body { height: 100%; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang TC', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 750px;
+            overflow: hidden; /* 讓標題背景可以貼齊邊緣 */
+        }
+
+        /* 標題與題目區隔的關鍵：頂部導覽列感 */
+        .header {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 20px;
+            font-size: 24px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .content-area {
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* 題目區域：增加背景深淺區隔 */
+        .quote-box {
+            background: #fdfdfd;
+            border: 1px dashed #dcdde1;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        #word-display {
+            font-size: 26px;
+            line-height: 1.5;
+            color: #555;
+        }
+
+        .char { border-bottom: 2px solid #eee; margin: 0 1px; }
+        .current { border-bottom: 3px solid var(--highlight); color: var(--highlight); background: #f0f7ff; }
+        .correct { color: var(--correct); border-bottom-color: transparent; }
+        .wrong { color: white; background-color: var(--wrong); border-bottom-color: var(--wrong); }
+
+        #caps-warning {
+            color: var(--warning);
+            font-weight: bold;
+            height: 24px;
+            margin-bottom: 10px;
+            visibility: hidden;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 80%;
+            padding: 18px;
+            font-size: 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px; /* 圓角輸入框 */
+            outline: none;
+            text-align: center;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input:focus { border-color: var(--highlight); box-shadow: 0 0 10px rgba(52, 152, 219, 0.2); }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #eee;
+        }
+
+        .stat-box { color: #7f8c8d; font-size: 0.9rem; }
+        .stat-box span { display: block; font-size: 28px; font-weight: bold; color: var(--primary-dark); }
+
+        button {
+            margin-top: 30px;
+            padding: 12px 35px;
+            background-color: var(--highlight);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        button:hover { background-color: #2980b9; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">TYPING MASTER</div>
+    
+    <div class="content-area">
+        <div class="quote-box">
+            <div id="word-display">載入中...</div>
+        </div>
+
+        <div id="caps-warning">⚠️ 字母正確，但大小寫不匹配！</div>
+        
+        <input type="text" id="input-field" placeholder="觀察上方文字，在此開始輸入..." autofocus autocomplete="off">
+        
+        <div class="stats">
+            <div class="stat-box">時間 (秒) <span id="timer">0</span></div>
+            <div class="stat-box">WPM (速度) <span id="wpm">0</span></div>
+            <div class="stat-box">正確率 (%) <span id="accuracy">100</span></div>
+        </div>
+        
+        <button onclick="resetGame()">換下一題</button>
+    </div>
+</div>
+
+<script>
+    const quotes = [
+        "The best way to predict the future is to create it.",
+        "Quality is not an act, it is a habit.",
+        "Life is 10% what happens to us and 90% how we react to it.",
+        "Everything you've ever wanted is on the other side of fear.",
+        "Do one thing every day that scares you."
+    ];
+
+    let timer, timeElapsed = 0, isPlaying = false, currentQuote = "", charIndex = 0, mistakes = 0;
+    const display = document.getElementById('word-display');
+    const input = document.getElementById('input-field');
+    const warning = document.getElementById('caps-warning');
+
+    function initGame() {
+        currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        display.innerHTML = "";
+        currentQuote.split('').forEach(char => {
+            const span = document.createElement('span');
+            span.classList.add('char');
+            span.innerText = char;
+            display.appendChild(span);
+        });
+        updateCursor();
+        input.value = "";
+        charIndex = 0;
+        mistakes = 0;
+        timeElapsed = 0;
+        isPlaying = false;
+        warning.style.visibility = 'hidden';
+        clearInterval(timer);
+        document.getElementById('timer').innerText = 0;
+        document.getElementById('wpm').innerText = 0;
+        document.getElementById('accuracy').innerText = 100;
+    }
+
+    function updateCursor() {
+        const chars = display.querySelectorAll('.char');
+        chars.forEach(c => c.classList.remove('current'));
+        if(chars[charIndex]) chars[charIndex].classList.add('current');
+    }
+
+    input.addEventListener('input', () => {
+        if (!isPlaying && input.value !== "") {
+            isPlaying = true;
+            startTimer();
+        }
+
+        const characters = display.querySelectorAll('.char');
+        const typedChar = input.value.slice(-1); 
+        const targetChar = currentQuote[charIndex];
+
+        if (typedChar === targetChar) {
+            warning.style.visibility = 'hidden';
+            characters[charIndex].classList.add('correct');
+            characters[charIndex].classList.remove('wrong');
+            charIndex++;
+            updateCursor();
+            if (charIndex >= currentQuote.length) finishGame();
+        } else if (typedChar !== "") {
+            characters[charIndex].classList.add('wrong');
+            mistakes++;
+            if (typedChar.toLowerCase() === targetChar.toLowerCase()) {
+                warning.style.visibility = 'visible';
+            } else {
+                warning.style.visibility = 'hidden';
+            }
+        }
+
+        input.value = ""; 
+        updateStats();
+    });
+
+    function updateStats() {
+        const totalAttempts = charIndex + mistakes;
+        const acc = totalAttempts > 0 ? (charIndex / totalAttempts) * 100 : 100;
+        document.getElementById('accuracy').innerText = Math.round(acc);
+        if (timeElapsed > 0) {
+            const wpm = Math.round(((charIndex / 5) / timeElapsed) * 60);
+            document.getElementById('wpm').innerText = wpm;
+        }
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            timeElapsed++;
+            document.getElementById('timer').innerText = timeElapsed;
+            updateStats();
+        }, 1000);
+    }
+
+    function finishGame() {
+        clearInterval(timer);
+        setTimeout(() => {
+            alert(`🎉 太棒了！\n您的打字速度：${document.getElementById('wpm').innerText} WPM\n正確率：${document.getElementById('accuracy').innerText}%`);
+            resetGame();
+        }, 100);
+    }
+
+    function resetGame() {
+        initGame();
+        input.focus();
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
